@@ -1,6 +1,4 @@
 # added exclusions
-*.pickle
-*.pkl
 *.lp
 *.pt
 *.mps
