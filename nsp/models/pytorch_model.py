@@ -128,7 +128,7 @@ class ReLUNetworkPerScenarioModel(Model):
 
         tr_results = {'loss': [], 'mse': [], 'mae': [], 'mape': []}
         val_results = {'mse': [], 'mae': [], 'mape': []}
-        best_results = {'mae': np.infty}
+        best_results = {'mae': np.inf}
 
         _time = time.time()
         for epoch in range(self.n_epochs):
@@ -190,7 +190,7 @@ class ReLUNetworkPerScenarioModel(Model):
         self.model.eval()
         with torch.no_grad():
             tr_preds = self.model(self.tensors['x_tr']).detach().cpu().numpy()
-            val_preds = self.model(self.tensors['x_val']).cpu().detach().numpy()
+            val_preds = self.model(self.tensors['x_val']).detach().cpu().numpy()
 
         tr_results['mse'].append(MSE(self.data['y_tr'], tr_preds))
         tr_results['mae'].append(MAE(self.data['y_tr'], tr_preds))
@@ -391,7 +391,7 @@ class ReLUNetworkExpectedModel(Model):
 
         tr_results = {'loss': [], 'mse': [], 'mae': [], 'mape': []}
         val_results = {'mse': [], 'mae': [], 'mape': []}
-        best_results = {'mae': np.infty}
+        best_results = {'mae': np.inf}
 
         _time = time.time()
         for epoch in range(self.n_epochs):

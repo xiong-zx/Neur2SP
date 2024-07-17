@@ -18,7 +18,7 @@ def get_nn_p_function_call(args, problem):
     hds = list(map(lambda x: str(x), params["hidden_dims"]))
     hds = " ".join(hds)
 
-    cmd =  f'python -m nsp.scripts.train_model --problem {problem} --model nn_p '
+    cmd =  f'python -m nsp.scripts.train_model --problem {problem} --model_type nn_p '
     cmd += f'--hidden_dims {hds} '
     cmd += f'--lr {params["lr"]} '
     cmd += f'--dropout {params["dropout"]} '
@@ -41,7 +41,7 @@ def get_nn_e_function_call(args, problem):
     from nn_params import nn_e_params
     params = nn_e_params[problem]
 
-    cmd =  f'python -m nsp.scripts.train_model --problem {problem} --model nn_e '
+    cmd =  f'python -m nsp.scripts.train_model --problem {problem} --model_type nn_e '
     cmd += f'--embed_hidden_dim {params["embed_hidden_dim"]} '
     cmd += f'--embed_dim1 {params["embed_dim1"]} '
     cmd += f'--embed_dim2 {params["embed_dim2"]} '
@@ -183,7 +183,7 @@ def main(args):
     # Note that this will take quite a long time.
     else:
         for cmd in cmds:
-            cmd_as_list = cmd.split(" ")
+            cmd_as_list = cmd.strip().split(" ")
             subprocess.call(cmd_as_list)
 
 
