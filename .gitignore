@@ -12,6 +12,7 @@ wandb/
 local_files/
 node_files/
 data_/
+slurm/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
