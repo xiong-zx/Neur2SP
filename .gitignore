@@ -1,6 +1,7 @@
 # added exclusions
 *.lp
 *.pt
+*.pkl
 *.mps
 *.cor
 *.smps
