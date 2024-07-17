@@ -9,7 +9,7 @@
 #SBATCH --array=0-80        # 81 tasks in the array
 
 # Load the Anaconda module
-module load anaconda3/2024.02-1
+module load python
 
 # Activate the Conda environment
 conda deactivate
