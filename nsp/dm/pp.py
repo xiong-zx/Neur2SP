@@ -105,7 +105,8 @@ class PoolingProblemDataManager(DataManager):
         pool_prob.sulfur = mp_manager.dict(scenarios["scenarios"]["sulfur"])
         pool_prob.probs = mp_manager.list(scenarios["probs"])
 
-        total_time = time.time()
+        total_time = 0
+        time_start = time.time()
         # Generate random data using random first-stage solution and scenario subsets
         fss_scenario_subset_pairs = []
         n_second_stage_problems = 0
@@ -129,6 +130,8 @@ class PoolingProblemDataManager(DataManager):
         manager = mp.Manager()
         mp_count = manager.Value("i", 0)
 
+        total_time += time.time() - time_start
+        
         for fss_id, (fss, scenario_subset) in enumerate(fss_scenario_subset_pairs):
             for scenario_id in scenario_subset:
                 results.append(
@@ -144,6 +147,7 @@ class PoolingProblemDataManager(DataManager):
                         ),
                     )
                 )
+        time_start = time.time()
         results = [r.get() for r in results]
         results_dict = {f'{r["fss_id"]}_{r["scenario_id"]}': r for r in results}
 
@@ -156,7 +160,7 @@ class PoolingProblemDataManager(DataManager):
             probs=scenarios["probs"],
         )
 
-        total_time = time.time() - total_time
+        total_time += time.time() - time_start
         mp_time = np.sum([d["time"] for d in data])
 
         tr_data, val_data = self._get_data_split(data)
@@ -164,7 +168,8 @@ class PoolingProblemDataManager(DataManager):
             "tr_data": tr_data,
             "val_data": val_data,
             "data": data,
-            "total_time": total_time,
+            "total_time": total_time + mp_time,
+            "mp_time": mp_time,
         }
 
         pkl.dump(ml_data, open(self.ml_data_e_path, "wb"))

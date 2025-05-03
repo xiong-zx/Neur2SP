@@ -162,7 +162,8 @@ class FacilityLocationDataManager(DataManager):
         )
 
         data = []
-        total_time = time.time()
+        total_time = 0
+        time_start = time.time()
         probs = np.linspace(0.0, 0.9, 10)
 
         two_sp = FacilityLocationProblem(self.instance)
@@ -204,6 +205,8 @@ class FacilityLocationDataManager(DataManager):
             else:
                 pool = Pool(n_procs)
 
+            total_time += time.time() - time_start
+            
             for first_stage_sol, scenario_subset in procs_to_run:
                 for scenario in scenario_subset:
                     pool.apply_async(
@@ -224,6 +227,8 @@ class FacilityLocationDataManager(DataManager):
             pool.close()
             pool.join()
 
+            time_start = time.time()
+            
             print("Storing reuslts... ", end="")
 
             for first_stage_sol, scenario_subset in procs_to_run:
@@ -251,10 +256,9 @@ class FacilityLocationDataManager(DataManager):
 
             print("Done")
 
-        total_time = time.time() - total_time
-
         mp_time = list(map(lambda x: x["time"], data))
         mp_time = np.sum(mp_time)
+        total_time += mp_time + time.time() - time_start
 
         # get train/validation split, then store
         tr_data, val_data = self._get_data_split(data, self.instance)
@@ -266,7 +270,7 @@ class FacilityLocationDataManager(DataManager):
             "mp_time": mp_time,
         }
 
-        print("Time (No MP):       ", mp_time)
+        print("MP Time:            ", mp_time)
         print("Total Time:         ", total_time)
         print("Dataset size:       ", len(data))
         print("Train dataset size: ", len(tr_data))
