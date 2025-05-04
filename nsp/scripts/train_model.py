@@ -1,6 +1,6 @@
 import argparse
 import pickle
-
+from typing import Tuple
 import numpy as np
 import torch
 
@@ -10,7 +10,18 @@ from nsp.utils import factory_get_path
 from nsp.utils import load_instance
 
 
-def factory_scenario_padder(args, split, max_scenarios):
+def factory_scenario_padder(args, split, max_scenarios) -> Tuple[np.ndarray, np.ndarray]:
+    """
+    Pads scenarios to a uniform length based on the problem type.
+
+    Args:
+        args: An object containing the problem type.
+        split: A list of scenarios to be padded.
+        max_scenarios: The maximum number of scenarios to pad to.
+
+    Returns:
+        Tuple[np.ndarray, np.ndarray]: Padded scenarios and their respective lengths.
+    """
     x_scen, x_n_scen = None, None
 
     def pad_scenario_ip(scenario):
@@ -160,6 +171,9 @@ def main(args):
 
     # initialize and train model
     model = factory_learning_model(args, inst)
+    # total_params = sum(p.numel() for p in model.model.parameters() if p.requires_grad)
+    # print(f"Total number of parameters: {total_params}")
+    # raise Exception("Stop")
     model.train(data)
     model.eval_learning_metrics()
 

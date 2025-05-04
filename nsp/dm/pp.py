@@ -87,7 +87,7 @@ class PoolingProblemDataManager(DataManager):
         n_samples_generated = 0
         sampler = Sampler(self.cfg)
         scenarios = sampler.get_support()
-        mp_manager = mp.Manager()
+        mp_manager = mp.Manager()  # shared across processes
         # shared_scenarios = mp_manager.dict(scenarios)
 
         instance = self.instances[0]
@@ -183,6 +183,8 @@ class PoolingProblemDataManager(DataManager):
         features = self._get_feature_vector(pool_prob, scenario_id, fs_sol)
         _time = time.time() - _time
 
+        print(f"Length of feature vector: {len(features)}")
+        raise ValueError("Stop")
         return {"sol": fs_sol, "obj": qval, "time": _time, "scenario_id": scenario_id,
                 "features": features}
 

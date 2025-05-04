@@ -165,6 +165,59 @@ class Net2MIPExpected(object):
         self.B = [self.network.relu_input.bias.cpu().detach().numpy(),
                   self.network.relu_output.bias.cpu().detach().numpy()]
 
+    def get_second_stage(self):
+        self.second_stage_mip = gp.Model()
+        nVar = len(self.gp_vars.keys())
+        # first_stage_vars = self.second_stage_mip.addVars(nVar, vtype=gp.GRB.CONTINUOUS,lb=0.0, ub=1.0,name="x_in")
+        first_stage_vars = self.second_stage_mip.addVars(nVar, vtype=gp.GRB.BINARY,name="x_in")
+
+        XX = []
+        for k, (wt, b) in enumerate(zip(self.W, self.B)):
+
+            outSz, inpSz = wt.shape
+
+            X, S, Z = [], [], []
+            for j in range(outSz):
+                x_name = f'x_{self.scenario_index}_{k + 1}_{j}'
+                s_name = f's_{self.scenario_index}_{k + 1}_{j}'
+                z_name = f'z_{self.scenario_index}_{k + 1}_{j}'
+
+                X.append(self.second_stage_mip.addVar(vtype=gp.GRB.CONTINUOUS, lb=0, name=x_name))
+                S.append(self.second_stage_mip.addVar(vtype=gp.GRB.CONTINUOUS, lb=0, name=s_name))
+                Z.append(self.second_stage_mip.addVar(vtype=gp.GRB.BINARY, name=z_name))
+
+                # W out-by-in
+                # x in-by-1
+                # _eq = W . x 
+                _eq = 0
+                for i in range(inpSz):
+                    # First layer weights are partially multiplied by gp.var and features
+                    if k == 0:
+                        # Multiply gp vars
+                        if i < nVar:
+                            _eq += wt[j][i] * first_stage_vars[i]
+                        else:
+                            _eq += wt[j][i] * self.scenario_embedding[i - nVar]
+                    else:
+                        _eq += wt[j][i] * XX[-1][i]
+
+                # Add bias
+                _eq += b[j]
+
+                # Add constraint for each output neuron 
+                self.second_stage_mip.addConstr(_eq == X[-1] - S[-1], name=f"mult_{x_name}__{s_name}")
+                self.second_stage_mip.addConstr(X[-1] <= self.M_plus * Z[-1], name=f"bm_{x_name}")
+                self.second_stage_mip.addConstr(S[-1] <= self.M_minus * (1-Z[-1]), name=f"bm_{s_name}")
+
+
+            # Save current layers gurobi vars
+            XX.append(X)
+
+        self.second_stage_mip.setObjective(gp.quicksum(XX[-1]), sense=gp.GRB.MINIMIZE)
+        self.second_stage_mip.update()
+
+        return self.second_stage_mip
+    
     def _create_mip(self):
         """
         Take a learned neural representation of the Q(x, k) and fuse 
@@ -212,8 +265,8 @@ class Net2MIPExpected(object):
                 # Add constraint for each output neuron 
                 if k < len(self.W) - 1:
                     self.gp_model.addConstr(_eq == X[-1] - S[-1], name=f"mult_{x_name}__{s_name}")
-                    self.gp_model.addConstr(X[-1] <= self.M_plus * (1 - Z[-1]), name=f"bm_{x_name}")
-                    self.gp_model.addConstr(S[-1] <= self.M_minus * (Z[-1]), name=f"bm_{s_name}")
+                    self.gp_model.addConstr(X[-1] <= self.M_plus * (Z[-1]), name=f"bm_{x_name}")
+                    self.gp_model.addConstr(S[-1] <= self.M_minus * (1-Z[-1]), name=f"bm_{s_name}")
 
                 else:
                     self.gp_model.addConstr(_eq == X[-1], name=f"mult_out_{x_name}__{s_name}")
