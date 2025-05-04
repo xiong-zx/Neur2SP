@@ -18,4 +18,4 @@ instances can be implemented.  We provide a brief overview of each of the folder
   - `collect_results.py`: Collects results for a single problem and stores them in a dictionary.
   - `collect_all_results.py`: Collects results for all problems and stores them in a dictionary.
   - `create_random_search.py`(Appendix Only): Generates configs to be run for random search.
-  - `get_rs_results.py`(Appendix Only): Collects variance results across random search instances. 
+  - `get_rs_results.py`(Appendix Only): Collects variance results across random search instances.

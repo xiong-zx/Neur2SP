@@ -96,10 +96,11 @@ class ReLUNetworkExpected(nn.Module):
         self.relu_input = nn.Linear(self.fs_input_dim + self.ss_embed_dim2, self.relu_hidden_dim)
         self.relu_output = nn.Linear(self.relu_hidden_dim, self.output_dim)
 
-    def forward(self, x_fs, x_scen, x_n_scen=None):
+    def forward(self, x_fs, x_scen=None, x_n_scen=None):
         """ Forward pass. """
 
         # embed scenarios
+        # x_scen_embed = self.embed_scenarios(x_scen, x_n_scen) if self.x_scen_embed is None else self.x_scen_embed
         x_scen_embed = self.embed_scenarios(x_scen, x_n_scen)
 
         # concat first stage solution and scenario embedding
@@ -175,5 +176,5 @@ class ReLUNetworkExpected(nn.Module):
             x_scen_embed = F.relu(x_scen_embed)
             if self.dropout:
                 x_scen_embed = F.dropout(x_scen_embed, p=self.dropout)
-
-        return x_scen_embed
+        self.x_scen_embed = x_scen_embed
+        return self.x_scen_embed
